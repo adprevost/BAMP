@@ -1,14 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using Windows.Devices.Gpio;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
+using static BAMP.Door;
 
 namespace BAMP
 {
     public sealed partial class MainPage : Page
     {
+
+        public static readonly int[] DOOR_PINS = { 16 };
+
+        private Doors doors = new Doors();
+
         public MainPage()
         {
             InitializeComponent();
@@ -26,62 +34,40 @@ namespace BAMP
                 return;
             }
 
-            buttonPin = gpio.OpenPin(BUTTON_PIN);
-            ledPin = gpio.OpenPin(LED_PIN);
+            foreach (var pin in DOOR_PINS)
+            {
+                // create new door from pin
+                Door door = new Door(ref gpio, pin);
 
-            // Initialize LED to the OFF state by first writing a HIGH value
-            // We write HIGH because the LED is wired in a active LOW configuration
-            ledPin.Write(GpioPinValue.High);
-            ledPin.SetDriveMode(GpioPinDriveMode.Output);
+                // Register for the ValueChanged event so our buttonPin_ValueChanged 
+                // function is called when the button is pressed
+                door.StateChange += Door_StateChange;
 
-            // Check if input pull-up resistors are supported
-            if (buttonPin.IsDriveModeSupported(GpioPinDriveMode.InputPullUp))
-                buttonPin.SetDriveMode(GpioPinDriveMode.InputPullUp);
-            else
-                buttonPin.SetDriveMode(GpioPinDriveMode.Input);
+                // add door to list of doors
+                doors.Add(door);
 
-            // Set a debounce timeout to filter out switch bounce noise from a button press
-            buttonPin.DebounceTimeout = TimeSpan.FromMilliseconds(50);
-
-            // Register for the ValueChanged event so our buttonPin_ValueChanged 
-            // function is called when the button is pressed
-            buttonPin.ValueChanged += buttonPin_ValueChanged;
-
-            GpioStatus.Text = "GPIO pins initialized correctly.";
+                door.Number = doors.IndexOf(door) + 1;
+            }
         }
 
-        private void buttonPin_ValueChanged(GpioPin sender, GpioPinValueChangedEventArgs e)
+        private void Door_StateChange(Door door, GpioPinValueChangedEventArgs e)
         {
-            // toggle the state of the LED every time the button is pressed
-            if (e.Edge == GpioPinEdge.FallingEdge)
-            {
-                ledPinValue = (ledPinValue == GpioPinValue.Low) ?
-                    GpioPinValue.High : GpioPinValue.Low;
-                ledPin.Write(ledPinValue);
-            }
-
             // need to invoke UI updates on the UI thread because this event
             // handler gets invoked on a separate thread.
             var task = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => {
                 if (e.Edge == GpioPinEdge.FallingEdge)
                 {
-                    ledEllipse.Fill = (ledPinValue == GpioPinValue.Low) ?
-                        redBrush : grayBrush;
-                    GpioStatus.Text = "Button Pressed";
+                    // door closed
+                    door.InUse = true;
+                    Debug.WriteLine("InUse");
                 }
                 else
                 {
-                    GpioStatus.Text = "Button Released";
+                    // door open
+                    door.InUse = false;
+                    Debug.WriteLine("NotInUse");
                 }
             });
         }
-
-        private const int LED_PIN = 6;
-        private const int BUTTON_PIN = 5;
-        private GpioPin ledPin;
-        private GpioPin buttonPin;
-        private GpioPinValue ledPinValue = GpioPinValue.High;
-        private SolidColorBrush redBrush = new SolidColorBrush(Windows.UI.Colors.Red);
-        private SolidColorBrush grayBrush = new SolidColorBrush(Windows.UI.Colors.LightGray);
     }
 }
