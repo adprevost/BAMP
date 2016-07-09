@@ -39,8 +39,8 @@ namespace BAMP
                 // create new door from pin
                 Door door = new Door(ref gpio, pin);
 
-                // Register for the ValueChanged event so our buttonPin_ValueChanged 
-                // function is called when the button is pressed
+                // register for the ValueChanged
+                // function is called when the door is opened or closed
                 door.StateChange += Door_StateChange;
 
                 // add door to list of doors
@@ -52,7 +52,6 @@ namespace BAMP
 
         private void Door_StateChange(Door door, GpioPinValueChangedEventArgs e)
         {
-            // need to invoke UI updates on the UI thread because this event
             // handler gets invoked on a separate thread.
             var task = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => {
                 if (e.Edge == GpioPinEdge.FallingEdge)
