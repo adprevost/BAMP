@@ -1,26 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Windows.Devices.Gpio;
 using Windows.UI.Core;
-using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Media;
-using static BAMP.Door;
 
 namespace BAMP
 {
     public sealed partial class MainPage : Page
     {
-
         public static readonly int[] DOOR_PINS = { 16 };
 
-        private Doors doors = new Doors();
+        public static Doors Doors = new Doors();
+
+        public WebServer WebServer;
 
         public MainPage()
         {
             InitializeComponent();
             InitGPIO();
+            InitWebServer();
         }
 
         private void InitGPIO()
@@ -44,16 +41,23 @@ namespace BAMP
                 door.StateChange += Door_StateChange;
 
                 // add door to list of doors
-                doors.Add(door);
+                Doors.Add(door);
 
-                door.Number = doors.IndexOf(door) + 1;
+                door.Number = Doors.IndexOf(door) + 1;
             }
+        }
+
+        private void InitWebServer()
+        {
+            WebServer = new WebServer();
+            WebServer.Start();
         }
 
         private void Door_StateChange(Door door, GpioPinValueChangedEventArgs e)
         {
             // handler gets invoked on a separate thread.
-            var task = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => {
+            var task = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            {
                 if (e.Edge == GpioPinEdge.FallingEdge)
                 {
                     // door closed

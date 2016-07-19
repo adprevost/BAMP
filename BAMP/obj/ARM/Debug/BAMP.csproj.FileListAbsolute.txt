@@ -189,4 +189,4 @@ C:\Users\Andrew\Source\Repos\BAMP\BAMP\obj\ARM\Debug\qualifiers.txt
 C:\Users\Andrew\Source\Repos\BAMP\BAMP\obj\ARM\Debug\qualifiers.txt.intermediate
 C:\Users\Andrew\Source\Repos\BAMP\BAMP\obj\ARM\Debug\MultipleQualifiersPerDimensionFound.txt
 C:\Users\Andrew\Source\Repos\BAMP\BAMP\obj\ARM\Debug\ProjectArchitectures.txt
-C:\Users\Andrew\Source\Repos\BAMP\BAMP\obj\ARM\Debug\BAMP.csprojResolveAssemblyReference.cache
+C:\Users\Andrew\Source\Repos\BAMP\BAMP\bin\ARM\Debug\Newtonsoft.Json.dll
