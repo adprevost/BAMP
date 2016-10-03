@@ -15,7 +15,7 @@ namespace BAMP
         {
             StreamSocketListener listener = new StreamSocketListener();
 
-            listener.BindServiceNameAsync("8888");
+            listener.BindServiceNameAsync("80");
 
             listener.ConnectionReceived += async (sender, args) =>
             {
